@@ -1,6 +1,11 @@
-import {ArgumentsHost, Catch, ExceptionFilter, HttpStatus} from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpStatus,
+} from '@nestjs/common';
 import { Response } from 'express';
-import {ERROR_INTERNAL_SERVER} from "@common/constants/error.constant";
+import { ERROR_INTERNAL_SERVER } from '@common/constants/error.constant';
 
 @Catch()
 export class AllExceptionFilter<T extends Error> implements ExceptionFilter {
