@@ -3,7 +3,7 @@ import { LoggerService } from '@common/services/logger.service';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
-export default class LoggerMiddleware implements NestMiddleware {
+export class LoggerMiddleware implements NestMiddleware {
   private readonly logger: LoggerService = new LoggerService(
     LoggerMiddleware.name,
   );
