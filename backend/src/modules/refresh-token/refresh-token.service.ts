@@ -24,4 +24,20 @@ export class RefreshTokenService {
       create: { token, userId, provider, ip, userAgent },
     });
   }
+
+  async findRefreshToken(
+    userId: string,
+    token: string,
+    provider = 'local',
+  ): Promise<boolean> {
+    const tokenRecord = await this.prisma.refreshToken.findFirst({
+      where: {
+        userId: userId,
+        token: token,
+        provider: provider,
+        isRevoked: false,
+      },
+    });
+    return !!tokenRecord;
+  }
 }

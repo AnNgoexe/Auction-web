@@ -23,8 +23,6 @@ export interface AccessTokenPayload extends AccessTokenPayloadInput {
 export interface RefreshTokenPayloadInput {
   userId: string;
 
-  tokenId: string;
-
   provider: string;
 }
 

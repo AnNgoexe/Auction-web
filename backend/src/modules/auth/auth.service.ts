@@ -10,6 +10,7 @@ import { TokenService } from '@common/services/token.service';
 import {
   ERROR_EMAIL_ALREADY_EXISTS,
   ERROR_INVALID_PASSWORD,
+  ERROR_REFRESH_TOKEN_NOT_FOUND,
   ERROR_USER_IS_BANNED,
   ERROR_USERNAME_ALREADY_EXISTS,
 } from '@modules/auth/auth.constant';
@@ -21,6 +22,8 @@ import { LoginBodyDto } from '@modules/auth/dtos/login.body.dto';
 import { LoginResponseDto } from '@modules/auth/dtos/login.response.dto';
 import { RegisterBodyDto } from '@modules/auth/dtos/register.body.dto';
 import { RegisterResponseDto } from '@modules/auth/dtos/register.response.dto';
+import { RefreshTokenResponseDto } from '@modules/auth/dtos/refresh-token.response.dto';
+import { RefreshTokenService } from '@modules/refresh-token/refresh-token.service';
 
 @Injectable()
 export class AuthService {
@@ -28,6 +31,7 @@ export class AuthService {
     private readonly passwordService: PasswordService,
     private readonly tokenService: TokenService,
     private readonly userService: UserService,
+    private readonly refreshTokenService: RefreshTokenService,
   ) {}
 
   async login(loginBodyDto: LoginBodyDto): Promise<LoginResponseDto> {
@@ -95,6 +99,52 @@ export class AuthService {
     };
   }
 
+  async refreshToken(
+    refreshToken: string,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<RefreshTokenResponseDto> {
+    const payload = await this.tokenService.verifyRefreshToken(refreshToken);
+    const { userId, provider } = payload;
+    const tokenExists = await this.refreshTokenService.findRefreshToken(
+      userId,
+      refreshToken,
+      provider,
+    );
+
+    if (!tokenExists)
+      throw new UnauthorizedException(ERROR_REFRESH_TOKEN_NOT_FOUND);
+
+    const user = await this.userService.findUserById(payload.userId);
+    if (!user || user.isBanned) {
+      throw new ForbiddenException(ERROR_USER_IS_BANNED);
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } =
+      await this.generateTokens(
+        user.userId,
+        user.email,
+        user.role,
+        user.username,
+        provider,
+        user.isVerified,
+        user.isBanned,
+      );
+
+    await this.refreshTokenService.saveRefreshToken(
+      userId,
+      newRefreshToken,
+      provider,
+      ip,
+      userAgent,
+    );
+
+    return {
+      accessToken,
+      refreshToken: newRefreshToken,
+    };
+  }
+
   private async generateTokens(
     userId: string,
     email: string,
@@ -114,10 +164,8 @@ export class AuthService {
       isBanned,
     };
 
-    const tokenId = crypto.randomUUID();
     const refreshTokenPayload: RefreshTokenPayloadInput = {
       userId,
-      tokenId,
       provider,
     };
 

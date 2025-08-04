@@ -63,4 +63,23 @@ export class UserService {
     });
     return !!user;
   }
+
+  async findUserById(
+    userId: string,
+  ): Promise<Omit<UserInfoResponseDto, 'password'>> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: {
+        userId: true,
+        email: true,
+        username: true,
+        role: true,
+        isVerified: true,
+        isBanned: true,
+      },
+    });
+
+    if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    return user;
+  }
 }

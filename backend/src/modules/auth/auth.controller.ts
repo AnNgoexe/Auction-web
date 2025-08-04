@@ -14,6 +14,8 @@ import { Request } from 'express';
 import { RegisterBodyDto } from '@modules/auth/dtos/register.body.dto';
 import { RegisterResponseDto } from '@modules/auth/dtos/register.response.dto';
 import { ResponsePayload } from '@common/types/response.interface';
+import { RefreshTokenBodyDto } from '@modules/auth/dtos/refresh-token.body.dto';
+import { RefreshTokenResponseDto } from '@modules/auth/dtos/refresh-token.response.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -57,6 +59,27 @@ export class AuthController {
     return {
       message: 'Register successfully',
       data: registerResponse,
+    };
+  }
+
+  @Post('refresh-token')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(
+    @Body() refreshTokenBodyDto: RefreshTokenBodyDto,
+    @Req() req: Request,
+  ): Promise<ResponsePayload> {
+    const ip = req.ip;
+    const userAgent = req.headers['user-agent'];
+
+    const tokens: RefreshTokenResponseDto = await this.authService.refreshToken(
+      refreshTokenBodyDto.refreshToken,
+      ip,
+      userAgent,
+    );
+
+    return {
+      message: 'Refresh token successfully',
+      data: tokens,
     };
   }
 }

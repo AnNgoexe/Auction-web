@@ -21,3 +21,9 @@ export const ERROR_USERNAME_ALREADY_EXISTS = {
   message: 'Username already exists',
   errorCode: 'USERNAME_ALREADY_EXISTS',
 };
+
+export const ERROR_REFRESH_TOKEN_NOT_FOUND = {
+  statusCode: 401,
+  errorCode: 'REFRESH_TOKEN_NOT_FOUND',
+  message: 'Refresh token not found',
+};
