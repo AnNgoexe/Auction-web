@@ -1,0 +1,70 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  BIDDER
+  SELLER
+}
+
+model User {
+  userId     String   @id @default(uuid()) @map("user_id") @db.Char(36)
+  email      String   @unique @db.VarChar(255)
+  username   String   @unique @db.VarChar(255)
+  password   String   @db.VarChar(255)
+  role       Role
+  isBanned   Boolean  @default(false) @map("is_banned")
+  isVerified Boolean  @default(false) @map("is_verified")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  refreshToken RefreshToken[] @relation("User_Has_Tokens")
+
+  profile Profile? @relation("User_Has_Profile")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id    String @id @default(uuid()) @db.Char(36)
+  token String @unique @db.VarChar(512)
+
+  userId String @map("user_id")
+  user   User   @relation("User_Has_Tokens", fields: [userId], references: [userId], onDelete: Cascade)
+
+  ip         String?  @db.VarChar(45)
+  userAgent  String?  @db.Text
+  provider   String?  @default("local") @db.VarChar(50)
+  isRevoked  Boolean  @default(false) @map("is_revoked")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  lastUsedAt DateTime @default(now()) @map("last_used_at") @db.Timestamp(0)
+
+  @@unique([userId, provider], name: "userId_provider")
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Profile {
+  userId String @id @map("user_id") @db.Char(36)
+  user   User   @relation("User_Has_Profile", fields: [userId], references: [userId], onDelete: Cascade)
+
+  fullName        String?   @map("full_name") @db.VarChar(255)
+  phoneNumber     String?   @map("phone_number") @db.VarChar(255)
+  profileImageUrl String?   @map("profile_image_url") @db.VarChar(255)
+  createdAt       DateTime? @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("profiles")
+}

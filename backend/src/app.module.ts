@@ -8,9 +8,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CommonModule } from '@common/common.module';
 import { LoggerMiddleware } from '@common/middlewares/logger.middleware';
+import { UserModule } from '@modules/user/user.module';
+import { AuthModule } from '@modules/auth/auth.module';
+import { RefreshTokenModule } from '@modules/refresh-token/refresh-token.module';
 
 @Module({
-  imports: [CommonModule],
+  imports: [CommonModule, UserModule, AuthModule, RefreshTokenModule],
   controllers: [AppController],
   providers: [AppService],
 })

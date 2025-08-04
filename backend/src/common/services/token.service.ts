@@ -3,8 +3,10 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import {
-  TokenPayload,
-  TokenPayloadInput,
+  AccessTokenPayload,
+  AccessTokenPayloadInput,
+  RefreshTokenPayloadInput,
+  RefreshTokenPayload,
 } from '@common/types/token-payload.interface';
 import {
   ERROR_ACCESS_TOKEN_EXPIRED,
@@ -38,7 +40,7 @@ export class TokenService {
     );
   }
 
-  async generateAccessToken(payload: TokenPayloadInput): Promise<string> {
+  async generateAccessToken(payload: AccessTokenPayloadInput): Promise<string> {
     try {
       return await this.jwtService.signAsync(payload, {
         secret: this.accessTokenKey,
@@ -50,9 +52,9 @@ export class TokenService {
     }
   }
 
-  async verifyAccessToken(token: string): Promise<TokenPayload> {
+  async verifyAccessToken(token: string): Promise<AccessTokenPayload> {
     try {
-      return await this.jwtService.verifyAsync<TokenPayload>(token, {
+      return await this.jwtService.verifyAsync<AccessTokenPayload>(token, {
         secret: this.accessTokenKey,
         algorithms: ['HS256'],
       });
@@ -67,7 +69,9 @@ export class TokenService {
     }
   }
 
-  async generateRefreshToken(payload: TokenPayloadInput): Promise<string> {
+  async generateRefreshToken(
+    payload: RefreshTokenPayloadInput,
+  ): Promise<string> {
     try {
       return await this.jwtService.signAsync(payload, {
         secret: this.refreshTokenKey,
@@ -79,9 +83,9 @@ export class TokenService {
     }
   }
 
-  async verifyRefreshToken(token: string): Promise<TokenPayload> {
+  async verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
     try {
-      return await this.jwtService.verifyAsync<TokenPayload>(token, {
+      return await this.jwtService.verifyAsync<RefreshTokenPayload>(token, {
         secret: this.refreshTokenKey,
         algorithms: ['HS256'],
       });
