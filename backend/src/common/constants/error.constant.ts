@@ -12,36 +12,36 @@ export const ERROR_CLASS_VALIDATION_FAILED = {
 
 export const ERROR_ACCESS_TOKEN_EXPIRED = {
   statusCode: 400,
-  code: 'ACCESS_TOKEN_EXPIRED',
+  errorCode: 'ACCESS_TOKEN_EXPIRED',
   message: 'Access token has expired',
 };
 
 export const ERROR_INVALID_ACCESS_TOKEN = {
   statusCode: 400,
-  code: 'INVALID_ACCESS_TOKEN',
+  errorCode: 'INVALID_ACCESS_TOKEN',
   message: 'Access token is invalid',
 };
 
 export const ERROR_UNKNOWN_ACCESS_TOKEN = {
   statusCode: 400,
-  code: 'UNKNOWN_ACCESS_TOKEN',
+  errorCode: 'UNKNOWN_ACCESS_TOKEN',
   message: 'Unknown error occurred while verifying access token',
 };
 
 export const ERROR_REFRESH_TOKEN_EXPIRED = {
   statusCode: 400,
-  code: 'REFRESH_TOKEN_EXPIRED',
+  errorCode: 'REFRESH_TOKEN_EXPIRED',
   message: 'Refresh token has expired',
 };
 
 export const ERROR_INVALID_REFRESH_TOKEN = {
   statusCode: 400,
-  code: 'INVALID_REFRESH_TOKEN',
+  errorCode: 'INVALID_REFRESH_TOKEN',
   message: 'Refresh token is invalid',
 };
 
 export const ERROR_UNKNOWN_REFRESH_TOKEN = {
   statusCode: 400,
-  code: 'UNKNOWN_REFRESH_TOKEN',
+  errorCode: 'UNKNOWN_REFRESH_TOKEN',
   message: 'Unknown error occurred while verifying refresh token',
 };

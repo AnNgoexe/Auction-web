@@ -38,11 +38,11 @@ export const authService = {
       );
       return response.data;
     } catch (err) {
-      const { message, code, statusCode } = err?.response?.data || {};
+      const { message, errorCode, statusCode } = err?.response?.data || {};
       return Promise.reject({
         statusCode: statusCode || 500,
         message: message || 'Login failed',
-        errorCode: code || 'INTERNAL_SERVER_ERROR',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
       });
     }
   },

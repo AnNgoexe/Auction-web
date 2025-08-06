@@ -6,7 +6,7 @@ export const ERROR_USER_IS_BANNED = {
 
 export const ERROR_INVALID_PASSWORD = {
   statusCode: 401,
-  code: 'INVALID_PASSWORD',
+  errorCode: 'INVALID_PASSWORD',
   message: 'Password is incorrect',
 };
 

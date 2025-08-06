@@ -56,8 +56,7 @@ axiosClient.interceptors.response.use(
         }
 
         const response = await authService.refreshToken({ "refreshToken": refreshToken });
-        const newAccessToken = response?.data?.accessToken;
-        const newRefreshToken = response?.data?.refreshToken;
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
         if (!newAccessToken || !newRefreshToken) {
           return Promise.reject({
             statusCode: null,
