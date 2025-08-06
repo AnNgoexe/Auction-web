@@ -1,7 +1,9 @@
 import axios from 'axios';
+import axiosClient from "@/utils/axios.js";
 
 const AUTH_API = {
-  REFRESH_TOKEN: 'api/users/refresh-token',
+  LOGIN: '/auth/login',
+  REFRESH_TOKEN: 'auth/refresh-token',
 };
 
 export const authService = {
@@ -24,6 +26,23 @@ export const authService = {
         statusCode: statusCode || err?.response?.status || 500,
         message: message || 'Failed to refresh token',
         errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  },
+
+  login: async (credentials) => {
+    try {
+      const response = await axiosClient.post(
+        AUTH_API.LOGIN,
+        credentials
+      );
+      return response.data;
+    } catch (err) {
+      const { message, code, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Login failed',
+        errorCode: code || 'INTERNAL_SERVER_ERROR',
       });
     }
   },
