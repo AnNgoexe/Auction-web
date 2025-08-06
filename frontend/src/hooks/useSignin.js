@@ -8,6 +8,7 @@ export const useSignin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState({email: "", password: ""});
+  const [loading, setLoading] = useState(false);
   const [needVerification, setNeedVerification] = useState(false);
   const { showToastNotification } = useNotification();
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ export const useSignin = () => {
       return;
     }
 
+    setLoading(true);
 
     try {
       const response = await authService.login({email, password});
@@ -57,8 +59,10 @@ export const useSignin = () => {
       } else {
         showToastNotification(message, 'error');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
-  return { email, setEmail, setPassword, handleSubmit, error, needVerification };
+  return { email, setEmail, password, setPassword, handleSubmit, error, needVerification, loading };
 };

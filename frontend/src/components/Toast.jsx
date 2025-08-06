@@ -21,8 +21,6 @@ const bgColors = {
 };
 
 const Toast = ({ message, type = "info" }) => {
-  console.log(message);
-  console.log(type);
   const icon = icons[type] || icons.info;
   const bgColor = bgColors[type] || bgColors.info;
 

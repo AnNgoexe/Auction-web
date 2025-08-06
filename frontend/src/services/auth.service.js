@@ -4,6 +4,7 @@ import axiosClient from "@/utils/axios.js";
 const AUTH_API = {
   LOGIN: '/auth/login',
   REFRESH_TOKEN: 'auth/refresh-token',
+  REGISTER: '/auth/register',
 };
 
 export const authService = {
@@ -46,4 +47,18 @@ export const authService = {
       });
     }
   },
+
+  register: async (payload) => {
+    try {
+      const response = await axiosClient.post(AUTH_API.REGISTER, payload);
+      return response.data;
+    } catch(err) {
+      const { message, errorCode, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Registration failed',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  }
 };

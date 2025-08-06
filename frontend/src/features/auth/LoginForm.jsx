@@ -4,12 +4,10 @@ import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLock, AiOutlineMail } fro
 import { useSignin } from "@/hooks/useSignin.js";
 import { useUser } from "@/contexts/UserContext.jsx";
 import { useNavigate } from "react-router-dom";
-import { useNotification } from "@/contexts/NotificationContext.jsx";
 
 const LoginForm = () => {
   const { user } = useUser();
-  const { email, setEmail, setPassword, handleSubmit, error, needVerification } = useSignin();
-  const { showToastNotification } = useNotification();
+  const { email, setEmail, password, setPassword, handleSubmit, error, needVerification, loading } = useSignin();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
@@ -26,10 +24,9 @@ const LoginForm = () => {
       user.provider !== null;
 
     if (isLoggedIn) {
-      showToastNotification("You are already logged in.", "info");
       navigate("/");
     }
-  }, [user, navigate, showToastNotification]);
+  }, [user, navigate]);
 
   useEffect(() => {
     if (needVerification) {
@@ -59,7 +56,7 @@ const LoginForm = () => {
               <Title level={5}>Sign in</Title>
               <p className="mt-2 text-lg">
                 Don't have an account?
-                <CustomNavLink href="/auth/register">Signup Here</CustomNavLink>
+                <CustomNavLink href="/auth/register"> Signup Here</CustomNavLink>
               </p>
             </div>
             <div className="relative py-4 mt-8">
@@ -67,6 +64,7 @@ const LoginForm = () => {
               <input
                 type="email"
                 name="email"
+                value={email}
                 className={`w-full pl-10 pr-10 ${commonClassNameOfInput}`}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter Your Email"
@@ -84,6 +82,7 @@ const LoginForm = () => {
               <input
                 type={showPassword ? 'text' : 'password'}
                 name="password"
+                value={password}
                 className={`w-full pl-10 pr-10 ${commonClassNameOfInput}`}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter Your Password"
@@ -105,7 +104,9 @@ const LoginForm = () => {
             <div className="text-right mt-2">
               <CustomNavLink href="/auth/forgot-password" className="text-sm text-blue-500">Forgot Password?</CustomNavLink>
             </div>
-            <PrimaryButton className="w-full rounded-none my-5">LOGIN</PrimaryButton>
+            <PrimaryButton className="w-full rounded-none my-5" disabled={loading}>
+              {loading ? "Logging in..." : "LOGIN"}
+            </PrimaryButton>
           </form>
         </div>
       </div>
