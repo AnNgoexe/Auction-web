@@ -33,6 +33,7 @@ model User {
   refreshToken RefreshToken[] @relation("User_Has_Tokens")
 
   profile Profile? @relation("User_Has_Profile")
+  Otp     Otp[]
 
   @@map("users")
 }
@@ -67,4 +68,25 @@ model Profile {
   updatedAt       DateTime? @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("profiles")
+}
+
+enum OtpType {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model Otp {
+  id   String  @id @default(uuid()) @db.Char(36)
+  code String? @db.Char(6)
+
+  userId String @map("user_id") @db.Char(36)
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  type      OtpType
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  expiresAt DateTime? @map("expires_at") @db.Timestamp(0)
+
+  @@index([userId])
+  @@map("otps")
 }

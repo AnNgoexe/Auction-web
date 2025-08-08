@@ -82,4 +82,23 @@ export class UserService {
     if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
     return user;
   }
+
+  async updatePassword(
+    userId: string,
+    newHashedPassword: string,
+  ): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      select: { userId: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    }
+
+    await this.prisma.user.update({
+      where: { userId },
+      data: { password: newHashedPassword },
+    });
+  }
 }

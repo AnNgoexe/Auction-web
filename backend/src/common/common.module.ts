@@ -8,12 +8,50 @@ import { TokenService } from '@common/services/token.service';
 import { PasswordService } from '@common/services/password.service';
 import { PrismaService } from '@common/services/prisma.service';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailerModule } from '@nestjs-modules/mailer';
+import { MailService } from '@common/services/mail.service';
+import path from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
-const service = [LoggerService, TokenService, PasswordService, PrismaService];
+const service = [
+  LoggerService,
+  TokenService,
+  PasswordService,
+  PrismaService,
+  MailService,
+];
 
 @Module({
-  imports: [JwtModule, ConfigModule],
+  imports: [
+    JwtModule,
+    ConfigModule,
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get<string>('MAIL_HOST'),
+          port: configService.get<number>('MAIL_PORT'),
+          secure: configService.get<string>('MAIL_SECURE') === 'true',
+          auth: {
+            user: configService.get<string>('MAIL_USER'),
+            pass: configService.get<string>('MAIL_PASSWORD'),
+          },
+        },
+        defaults: {
+          from: `"Bid Market" <${configService.get<string>('MAIL_FROM')}>`,
+        },
+        template: {
+          dir: path.join(process.cwd(), 'src/common/templates'),
+          adapter: new HandlebarsAdapter(),
+          options: {
+            strict: true,
+          },
+        },
+      }),
+    }),
+  ],
   providers: [
     ...service,
     {
