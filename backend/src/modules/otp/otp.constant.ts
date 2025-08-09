@@ -9,9 +9,3 @@ export const ERROR_OTP_EXPIRED = {
   errorCode: 'OTP_EXPIRED',
   message: 'OTP code has expired',
 };
-
-export const ERROR_OTP_INVALID = {
-  statusCode: 400,
-  errorCode: 'OTP_INVALID',
-  message: 'OTP code is invalid',
-};

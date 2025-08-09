@@ -11,37 +11,55 @@ export const ERROR_CLASS_VALIDATION_FAILED = {
 };
 
 export const ERROR_ACCESS_TOKEN_EXPIRED = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'ACCESS_TOKEN_EXPIRED',
   message: 'Access token has expired',
 };
 
 export const ERROR_INVALID_ACCESS_TOKEN = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'INVALID_ACCESS_TOKEN',
   message: 'Access token is invalid',
 };
 
 export const ERROR_UNKNOWN_ACCESS_TOKEN = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'UNKNOWN_ACCESS_TOKEN',
   message: 'Unknown error occurred while verifying access token',
 };
 
 export const ERROR_REFRESH_TOKEN_EXPIRED = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'REFRESH_TOKEN_EXPIRED',
   message: 'Refresh token has expired',
 };
 
 export const ERROR_INVALID_REFRESH_TOKEN = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'INVALID_REFRESH_TOKEN',
   message: 'Refresh token is invalid',
 };
 
 export const ERROR_UNKNOWN_REFRESH_TOKEN = {
-  statusCode: 400,
+  statusCode: 401,
   errorCode: 'UNKNOWN_REFRESH_TOKEN',
   message: 'Unknown error occurred while verifying refresh token',
+};
+
+export const ERROR_MISSING_AUTH_HEADER = {
+  statusCode: 401,
+  errorCode: 'MISSING_AUTH_HEADER',
+  message: 'Authorization header is missing or malformed',
+};
+
+export const ERROR_USER_BANNED = {
+  statusCode: 403,
+  errorCode: 'USER_IS_BANNED',
+  message: 'User is banned',
+};
+
+export const ERROR_USER_FORBIDDEN = {
+  statusCode: 403,
+  errorCode: 'USER_NOT_PERMISSION',
+  message: 'You do not have permission to access this resource',
 };

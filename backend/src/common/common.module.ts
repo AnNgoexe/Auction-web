@@ -13,6 +13,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { MailService } from '@common/services/mail.service';
 import path from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { JwtGuard } from '@common/guards/jwt.guard';
+import { RolesGuard } from '@common/guards/roles.guard';
 
 const service = [
   LoggerService,
@@ -69,6 +71,14 @@ const service = [
     {
       provide: 'APP_PIPE',
       useClass: ValidationPipe,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: JwtGuard,
+    },
+    {
+      provide: 'APP_GUARD',
+      useClass: RolesGuard,
     },
   ],
   exports: [...service],

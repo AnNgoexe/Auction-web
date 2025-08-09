@@ -33,7 +33,13 @@ model User {
   refreshToken RefreshToken[] @relation("User_Has_Tokens")
 
   profile Profile? @relation("User_Has_Profile")
-  Otp     Otp[]
+
+  otps Otp[] @relation("User_Has_Otps")
+
+  addresses Address[] @relation("User_Has_Addresses")
+
+  followings Follow[] @relation("Users_Follow_Sellers")
+  followers  Follow[] @relation("Sellers_FollowedBy_Users")
 
   @@map("users")
 }
@@ -80,7 +86,7 @@ model Otp {
   code String? @db.Char(6)
 
   userId String @map("user_id") @db.Char(36)
-  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user   User   @relation("User_Has_Otps", fields: [userId], references: [userId], onDelete: Cascade)
 
   type      OtpType
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
@@ -89,4 +95,54 @@ model Otp {
 
   @@index([userId])
   @@map("otps")
+}
+
+enum AddressType {
+  Home
+  Work
+  Others
+}
+
+model Address {
+  addressId String @id @default(uuid()) @map("address_id") @db.Char(36)
+
+  userId String @map("user_id") @db.Char(36)
+  user   User   @relation("User_Has_Addresses", fields: [userId], references: [userId], onDelete: Cascade)
+
+  streetAddress String      @map("street_address") @db.VarChar(255)
+  city          String      @db.VarChar(255)
+  state         String?     @db.VarChar(255)
+  postalCode    String?     @map("postal_code") @db.VarChar(255)
+  country       String      @db.VarChar(255)
+  addressType   AddressType @map("address_type")
+  createdAt     DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("addresses")
+}
+
+enum FollowStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  UNFOLLOWED
+  DECLINED
+}
+
+model Follow {
+  followId String @id @default(uuid()) @map("follow_id") @db.Char(36)
+
+  followerId String @map("follower_id") @db.Char(36)
+  follower   User   @relation("Users_Follow_Sellers", fields: [followerId], references: [userId], onDelete: Cascade)
+
+  sellerId String @map("seller_id") @db.Char(36)
+  seller   User   @relation("Sellers_FollowedBy_Users", fields: [sellerId], references: [userId], onDelete: Cascade)
+
+  status FollowStatus @default(PENDING)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([followerId, sellerId])
+  @@map("follows")
 }
