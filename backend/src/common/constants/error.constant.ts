@@ -63,3 +63,9 @@ export const ERROR_USER_FORBIDDEN = {
   errorCode: 'USER_NOT_PERMISSION',
   message: 'You do not have permission to access this resource',
 };
+
+export const ERROR_USER_UNVERIFIED = {
+  statusCode: 401,
+  code: 'USER_UNVERIFIED',
+  message: 'Your account has not been verified yet.',
+};

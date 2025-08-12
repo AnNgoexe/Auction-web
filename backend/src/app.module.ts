@@ -11,9 +11,16 @@ import { LoggerMiddleware } from '@common/middlewares/logger.middleware';
 import { UserModule } from '@modules/user/user.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { RefreshTokenModule } from '@modules/refresh-token/refresh-token.module';
+import { FollowModule } from '@modules/follow/follow.module';
 
 @Module({
-  imports: [CommonModule, UserModule, AuthModule, RefreshTokenModule],
+  imports: [
+    CommonModule,
+    UserModule,
+    AuthModule,
+    RefreshTokenModule,
+    FollowModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

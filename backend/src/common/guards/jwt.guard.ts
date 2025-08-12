@@ -12,6 +12,7 @@ import { Request } from 'express';
 import {
   ERROR_MISSING_AUTH_HEADER,
   ERROR_USER_BANNED,
+  ERROR_USER_UNVERIFIED,
 } from '@common/constants/error.constant';
 import { UserService } from '@modules/user/user.service';
 import { AUTH_TYPE_KEY } from '@common/decorators/auth.decorator';
@@ -41,6 +42,9 @@ export class JwtGuard implements CanActivate {
     const token = authHeader.split(' ')[1];
     const payload = await this.tokenService.verifyAccessToken(token);
     const user = await this.userService.findUserById(payload.userId);
+    if (!user.isVerified) {
+      throw new UnauthorizedException(ERROR_USER_UNVERIFIED);
+    }
     if (user.isBanned) {
       throw new ForbiddenException(ERROR_USER_BANNED);
     }

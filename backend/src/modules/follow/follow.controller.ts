@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Delete,
   Patch,
   Param,
   Req,
@@ -36,7 +35,7 @@ export class FollowController {
     };
   }
 
-  @Delete('unfollow/:sellerId')
+  @Patch('unfollow/:sellerId')
   @Roles(Role.BIDDER)
   @Auth(AuthType.ACCESS_TOKEN)
   @HttpCode(HttpStatus.OK)

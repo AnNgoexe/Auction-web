@@ -15,6 +15,7 @@ import path from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { JwtGuard } from '@common/guards/jwt.guard';
 import { RolesGuard } from '@common/guards/roles.guard';
+import { UserService } from '@modules/user/user.service';
 
 const service = [
   LoggerService,
@@ -22,6 +23,7 @@ const service = [
   PasswordService,
   PrismaService,
   MailService,
+  UserService,
 ];
 
 @Module({

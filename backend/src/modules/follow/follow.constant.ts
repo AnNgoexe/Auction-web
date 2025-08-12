@@ -1,7 +1,7 @@
 export const ERROR_CANNOT_FOLLOW_SELF = {
   statusCode: 409,
   errorCode: 'CANNOT_FOLLOW_SELF',
-  message: 'User cannot follow themselves',
+  message: 'You cannot follow yourself',
 };
 
 export const ERROR_ALREADY_FOLLOWED = {
@@ -13,13 +13,13 @@ export const ERROR_ALREADY_FOLLOWED = {
 export const ERROR_FOLLOW_BLOCKED = {
   statusCode: 403,
   errorCode: 'FOLLOW_BLOCKED',
-  message: 'You have been blocked by this user and cannot follow them',
+  message: 'You cannot follow them',
 };
 
-export const ERROR_INVALID_FOLLOW = {
+export const ERROR_INVALID_RELATION_ACTION = {
   statusCode: 400,
-  errorCode: 'INVALID_FOLLOW',
-  message: 'Only normal users can follow sellers',
+  errorCode: 'INVALID_RELATION_ACTION',
+  message: 'Invalid relationship action',
 };
 
 export const ERROR_CANNOT_UNFOLLOW_SELF = {
@@ -37,7 +37,7 @@ export const ERROR_NOT_FOLLOWING = {
 export const ERROR_UNFOLLOW_BLOCKED = {
   statusCode: 403,
   errorCode: 'UNFOLLOW_BLOCKED',
-  message: 'Cannot unfollow due to blocked status',
+  message: 'You cannot unfollow',
 };
 
 export const ERROR_SELLER_NOT_FOUND = {
@@ -46,10 +46,10 @@ export const ERROR_SELLER_NOT_FOUND = {
   message: 'Seller not found or invalid',
 };
 
-export const ERROR_FOLLOWER_NOT_FOUND = {
+export const ERROR_BIDDER_NOT_FOUND = {
   statusCode: 404,
-  errorCode: 'FOLLOWER_NOT_FOUND',
-  message: 'Follower user not found',
+  errorCode: 'BIDDER_NOT_FOUND',
+  message: 'Bidder not found or invalid',
 };
 
 export const ERROR_CANNOT_ACCEPT_SELF = {
@@ -70,12 +70,6 @@ export const ERROR_NO_FOLLOW_REQUEST = {
   message: 'No follow request found',
 };
 
-export const ERROR_NOT_PENDING_FOLLOW = {
-  statusCode: 400,
-  errorCode: 'NOT_PENDING_FOLLOW',
-  message: 'Follow request is not in pending status',
-};
-
 export const ERROR_CANNOT_BLOCK_SELF = {
   statusCode: 409,
   message: 'You cannot block yourself',
@@ -84,6 +78,6 @@ export const ERROR_CANNOT_BLOCK_SELF = {
 
 export const ERROR_ALREADY_BLOCKED = {
   statusCode: 409,
-  message: 'This follow relationship is already blocked',
+  message: 'You have already blocked this user',
   errorCode: 'ALREADY_BLOCKED',
 };
