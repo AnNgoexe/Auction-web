@@ -19,5 +19,9 @@ export class GetProfileResponseDto {
 
   profileImageUrl?: string | null;
 
-  isFollowed?: boolean;
+  followerCount?: number;
+
+  followingCount?: number;
+
+  followStatus!: 'UNFOLLOWING' | 'PENDING' | 'ACTIVE' | 'UNKNOWN';
 }

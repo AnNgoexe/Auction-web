@@ -35,21 +35,31 @@ export class JwtGuard implements CanActivate {
     const request: Request = context.switchToHttp().getRequest<Request>();
     const authHeader = request.headers['authorization'];
 
-    if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader) {
+      if (authType === AuthType.OPTIONAL) return true;
+      throw new UnauthorizedException(ERROR_MISSING_AUTH_HEADER);
+    }
+
+    if (!authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException(ERROR_MISSING_AUTH_HEADER);
     }
 
     const token = authHeader.split(' ')[1];
-    const payload = await this.tokenService.verifyAccessToken(token);
-    const user = await this.userService.findUserById(payload.userId);
-    if (!user.isVerified) {
-      throw new UnauthorizedException(ERROR_USER_UNVERIFIED);
-    }
-    if (user.isBanned) {
-      throw new ForbiddenException(ERROR_USER_BANNED);
-    }
+    try {
+      const payload = await this.tokenService.verifyAccessToken(token);
+      const user = await this.userService.findUserById(payload.userId);
+      if (!user.isVerified) {
+        throw new UnauthorizedException(ERROR_USER_UNVERIFIED);
+      }
+      if (user.isBanned) {
+        throw new ForbiddenException(ERROR_USER_BANNED);
+      }
 
-    request['user'] = payload;
-    return true;
+      request['user'] = payload;
+      return true;
+    } catch (err) {
+      if (authType === AuthType.OPTIONAL) return true;
+      throw err;
+    }
   }
 }

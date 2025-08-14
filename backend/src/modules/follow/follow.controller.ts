@@ -6,6 +6,8 @@ import {
   Req,
   HttpCode,
   HttpStatus,
+  Query,
+  Get,
 } from '@nestjs/common';
 import { FollowService } from './follow.service';
 import { Roles } from '@common/decorators/roles.decorator';
@@ -14,6 +16,7 @@ import { AuthType } from '@common/types/auth-type.enum';
 import { Role } from '@prisma/client';
 import { Request } from 'express';
 import { ResponsePayload } from '@common/types/response.interface';
+import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
 
 @Controller('follows')
 export class FollowController {
@@ -97,6 +100,88 @@ export class FollowController {
     return {
       message: 'Block successful',
       data: {},
+    };
+  }
+
+  @Get('followers/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getFollowers(
+    @Param('userId') userId: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ): Promise<ResponsePayload> {
+    const followers: FollowUserDto[] = await this.followService.getFollowers(
+      userId,
+      limit ? Number(limit) : 10,
+      offset ? Number(offset) : 0,
+    );
+
+    return {
+      message: 'Followers fetched successfully',
+      data: { followers },
+    };
+  }
+
+  @Get('followings/:userId')
+  @HttpCode(HttpStatus.OK)
+  async getFollowings(
+    @Param('userId') userId: string,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ): Promise<ResponsePayload> {
+    const followings: FollowUserDto[] = await this.followService.getFollowings(
+      userId,
+      limit ? Number(limit) : 10,
+      offset ? Number(offset) : 0,
+    );
+
+    return {
+      message: 'Followings fetched successfully',
+      data: { followings },
+    };
+  }
+
+  @Get('blocked')
+  @Roles(Role.SELLER)
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async getBlocked(
+    @Req() req: Request,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ): Promise<ResponsePayload> {
+    const sellerId = req.user?.userId;
+    const blocked: FollowUserDto[] = await this.followService.getBlocked(
+      sellerId as string,
+      limit ? Number(limit) : 10,
+      offset ? Number(offset) : 0,
+    );
+
+    return {
+      message: 'Blocked users fetched successfully',
+      data: { blocked },
+    };
+  }
+
+  @Get('pending')
+  @Roles(Role.SELLER)
+  @Auth(AuthType.ACCESS_TOKEN)
+  @HttpCode(HttpStatus.OK)
+  async getPending(
+    @Req() req: Request,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number,
+  ): Promise<ResponsePayload> {
+    const sellerId = req.user?.userId;
+    const pending: FollowUserDto[] = await this.followService.getPending(
+      sellerId as string,
+      limit ? Number(limit) : 10,
+      offset ? Number(offset) : 0,
+    );
+
+    return {
+      message: 'Pending follow requests fetched successfully',
+      data: { pending },
     };
   }
 }

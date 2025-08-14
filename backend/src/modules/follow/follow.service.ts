@@ -23,6 +23,7 @@ import {
   ERROR_UNFOLLOW_BLOCKED,
 } from '@modules/follow/follow.constant';
 import { FollowStatus, Role } from '@prisma/client';
+import { FollowUserDto } from '@modules/follow/dtos/user-follow.response.dto';
 
 @Injectable()
 export class FollowService {
@@ -177,6 +178,210 @@ export class FollowService {
       where: { followId: existingFollow.followId },
       data: { status: FollowStatus.BLOCKED },
     });
+  }
+
+  async countFollowings(userId: string): Promise<number> {
+    return this.prisma.follow.count({
+      where: {
+        followerId: userId,
+        status: FollowStatus.ACTIVE,
+      },
+    });
+  }
+
+  async countFollowers(userId: string): Promise<number> {
+    return this.prisma.follow.count({
+      where: {
+        sellerId: userId,
+        status: FollowStatus.ACTIVE,
+      },
+    });
+  }
+
+  async getFollowers(
+    userId: string,
+    limit = 10,
+    offset = 0,
+  ): Promise<FollowUserDto[]> {
+    const followers = await this.prisma.follow.findMany({
+      where: {
+        sellerId: userId,
+        status: FollowStatus.ACTIVE,
+      },
+      select: {
+        follower: {
+          select: {
+            userId: true,
+            username: true,
+            role: true,
+            profile: { select: { profileImageUrl: true } },
+          },
+        },
+      },
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return followers.map((f) => ({
+      userId: f.follower.userId,
+      username: f.follower.username,
+      role: f.follower.role,
+      profileImageUrl: f.follower.profile?.profileImageUrl || null,
+    }));
+  }
+
+  async getFollowings(
+    userId: string,
+    limit = 10,
+    offset = 0,
+  ): Promise<FollowUserDto[]> {
+    const followings = await this.prisma.follow.findMany({
+      where: {
+        followerId: userId,
+        status: FollowStatus.ACTIVE,
+      },
+      select: {
+        seller: {
+          select: {
+            userId: true,
+            username: true,
+            role: true,
+            profile: { select: { profileImageUrl: true } },
+          },
+        },
+      },
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return followings.map((f) => ({
+      userId: f.seller.userId,
+      username: f.seller.username,
+      role: f.seller.role,
+      profileImageUrl: f.seller.profile?.profileImageUrl || null,
+    }));
+  }
+
+  async getBlocked(
+    userId: string,
+    limit = 10,
+    offset = 0,
+  ): Promise<FollowUserDto[]> {
+    const blocked = await this.prisma.follow.findMany({
+      where: { sellerId: userId, status: FollowStatus.BLOCKED },
+      select: {
+        follower: {
+          select: {
+            userId: true,
+            username: true,
+            role: true,
+            profile: { select: { profileImageUrl: true } },
+          },
+        },
+      },
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return blocked.map((f) => ({
+      userId: f.follower.userId,
+      username: f.follower.username,
+      role: f.follower.role,
+      profileImageUrl: f.follower.profile?.profileImageUrl || null,
+    }));
+  }
+
+  async getPending(
+    userId: string,
+    limit = 10,
+    offset = 0,
+  ): Promise<FollowUserDto[]> {
+    const pending = await this.prisma.follow.findMany({
+      where: { sellerId: userId, status: FollowStatus.PENDING },
+      select: {
+        follower: {
+          select: {
+            userId: true,
+            username: true,
+            role: true,
+            profile: { select: { profileImageUrl: true } },
+          },
+        },
+      },
+      skip: offset,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return pending.map((f) => ({
+      userId: f.follower.userId,
+      username: f.follower.username,
+      role: f.follower.role,
+      profileImageUrl: f.follower.profile?.profileImageUrl || null,
+    }));
+  }
+
+  async getFollowStatus(
+    currentUserId: string,
+    targetUserId: string,
+  ): Promise<'UNFOLLOWING' | 'PENDING' | 'ACTIVE' | 'UNKNOWN' | 'BLOCKED'> {
+    if (currentUserId === targetUserId) return 'UNKNOWN';
+
+    const [currentUser, targetUser] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { userId: currentUserId },
+        select: { role: true },
+      }),
+      this.prisma.user.findUnique({
+        where: { userId: targetUserId },
+        select: { role: true },
+      }),
+    ]);
+
+    if (!currentUser || !targetUser) return 'UNKNOWN';
+
+    let follow;
+    if (currentUser.role === Role.BIDDER && targetUser.role === Role.SELLER) {
+      follow = await this.prisma.follow.findUnique({
+        where: {
+          followerId_sellerId: {
+            followerId: currentUserId,
+            sellerId: targetUserId,
+          },
+        },
+        select: { status: true },
+      });
+    } else if (
+      currentUser.role === Role.SELLER &&
+      targetUser.role === Role.BIDDER
+    ) {
+      follow = await this.prisma.follow.findUnique({
+        where: {
+          followerId_sellerId: {
+            followerId: targetUserId,
+            sellerId: currentUserId,
+          },
+        },
+        select: { status: true },
+      });
+    } else {
+      return 'UNKNOWN';
+    }
+
+    if (
+      !follow ||
+      follow.status === FollowStatus.DECLINED ||
+      follow.status === FollowStatus.UNFOLLOWED
+    )
+      return 'UNFOLLOWING';
+    if (follow.status === FollowStatus.PENDING) return 'PENDING';
+    if (follow.status === FollowStatus.ACTIVE) return 'ACTIVE';
+    if (follow.status === FollowStatus.BLOCKED) return 'BLOCKED';
+
+    return 'UNKNOWN';
   }
 
   private async validateBidderAndSeller(

@@ -5,15 +5,37 @@ import { ERROR_PROFILE_NOT_FOUND } from '@modules/profile/profile.constant';
 import { UpdateProfileDto } from '@modules/profile/dtos/update-profile.body.dto';
 import { FileService } from '@common/services/file.service';
 import { UpdateProfileResponseDto } from '@modules/profile/dtos/update-profile.response.dto';
+import { Role } from '@prisma/client';
+import { FollowService } from '@modules/follow/follow.service';
 
 @Injectable()
 export class ProfileService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly fileService: FileService,
+    private readonly followService: FollowService,
   ) {}
 
-  async getUserProfile(userId: string): Promise<GetProfileResponseDto> {
+  async getUserProfile(
+    userId: string,
+    currentUserId?: string,
+  ): Promise<GetProfileResponseDto> {
+    let followStatus:
+      | 'UNFOLLOWING'
+      | 'PENDING'
+      | 'ACTIVE'
+      | 'UNKNOWN'
+      | 'BLOCKED' = 'UNKNOWN';
+    if (currentUserId) {
+      followStatus = await this.followService.getFollowStatus(
+        currentUserId,
+        userId,
+      );
+    }
+
+    if (followStatus === 'BLOCKED')
+      throw new NotFoundException(ERROR_PROFILE_NOT_FOUND);
+
     const info = await this.prisma.user.findUnique({
       where: { userId },
       select: {
@@ -36,6 +58,15 @@ export class ProfileService {
       profileImageUrl = this.fileService.getFileUrl(profileImageUrl);
     }
 
+    let followerCount: number | undefined;
+    let followingCount: number | undefined;
+
+    if (info.role === Role.SELLER) {
+      followerCount = await this.followService.countFollowers(userId);
+    } else if (info.role === Role.BIDDER) {
+      followingCount = await this.followService.countFollowings(userId);
+    }
+
     return {
       userId: info.userId,
       email: info.email,
@@ -46,6 +77,9 @@ export class ProfileService {
       fullName: info.profile?.fullName,
       profileImageUrl: profileImageUrl,
       phoneNumber: info.profile?.phoneNumber,
+      followerCount,
+      followingCount,
+      followStatus,
     };
   }
 

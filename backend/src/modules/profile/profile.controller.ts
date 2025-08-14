@@ -25,12 +25,15 @@ export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
   @Get(':userId')
+  @Auth(AuthType.OPTIONAL)
   @HttpCode(HttpStatus.OK)
   async getUserProfile(
     @Param('userId', ParseUUIDPipe) userId: string,
+    @Req() request: Request,
   ): Promise<ResponsePayload> {
+    const currentUserId = request.user?.userId;
     const profile: GetProfileResponseDto =
-      await this.profileService.getUserProfile(userId);
+      await this.profileService.getUserProfile(userId, currentUserId);
     return {
       message: 'Get profile successfully',
       data: profile,
