@@ -12,6 +12,8 @@ import { UserModule } from '@modules/user/user.module';
 import { AuthModule } from '@modules/auth/auth.module';
 import { RefreshTokenModule } from '@modules/refresh-token/refresh-token.module';
 import { FollowModule } from '@modules/follow/follow.module';
+import { ProfileModule } from '@modules/profile/profile.module';
+import { AddressModule } from '@modules/address/address.module';
 
 @Module({
   imports: [
@@ -20,6 +22,8 @@ import { FollowModule } from '@modules/follow/follow.module';
     AuthModule,
     RefreshTokenModule,
     FollowModule,
+    ProfileModule,
+    AddressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
