@@ -165,6 +165,8 @@ export class UserService {
         itemsPerPage: limit,
         totalPages,
         currentPage,
+        hasNextPage: currentPage < totalPages,
+        hasPrevPage: currentPage > 1,
       },
     };
   }

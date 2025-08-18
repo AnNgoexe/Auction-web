@@ -46,7 +46,6 @@ export class FileService {
         Body: file.buffer,
         ContentType: file.mimetype,
         ContentLength: file.size,
-        ACL: 'public-read',
       }),
     );
 

@@ -8,6 +8,10 @@ export class PaginationMeta {
   totalPages!: number;
 
   currentPage!: number;
+
+  hasNextPage!: boolean;
+
+  hasPrevPage!: boolean;
 }
 
 export class PaginationResult<T> {

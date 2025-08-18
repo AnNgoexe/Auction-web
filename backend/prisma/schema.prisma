@@ -41,6 +41,8 @@ model User {
   followings Follow[] @relation("Users_Follow_Sellers")
   followers  Follow[] @relation("Sellers_FollowedBy_Users")
 
+  products Product[] @relation("Seller_Sell_Products")
+
   @@map("users")
 }
 
@@ -145,4 +147,83 @@ model Follow {
 
   @@unique([followerId, sellerId])
   @@map("follows")
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  SOLD
+}
+
+model Product {
+  productId   String  @id @default(uuid()) @map("product_id") @db.Char(36)
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+
+  sellerId String @map("seller_id") @db.Char(36)
+  seller   User   @relation("Seller_Sell_Products", fields: [sellerId], references: [userId], onDelete: Cascade)
+
+  status        ProductStatus @default(INACTIVE)
+  stockQuantity Int           @default(0) @map("stock_quantity")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  productCategories ProductCategory[] @relation("Products_Have_Categories")
+  images            ProductImage[]    @relation("Product_Has_Images")
+
+  @@map("products")
+}
+
+enum CategoryType {
+  ELECTRONICS
+  FASHION
+  COLLECTIBLES
+  HOME_APPLIANCES
+  SPORTS_EQUIPMENT
+  TOYS_AND_GAMES
+  VEHICLES
+  REAL_ESTATE
+  ART_AND_CRAFTS
+  JEWELRY_AND_ACCESSORIES
+  HEALTH_AND_BEAUTY
+  GARDEN_AND_OUTDOORS
+  MUSIC_INSTRUMENTS
+  PET_SUPPLIES
+  OFFICE_SUPPLIES
+  OTHER
+}
+
+model Category {
+  categoryId String       @id @default(uuid()) @map("category_id") @db.Char(36)
+  name       CategoryType
+  createdAt  DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  productCategories ProductCategory[] @relation("Categories_Contain_Products")
+
+  @@map("categories")
+}
+
+model ProductCategory {
+  productId String  @map("product_id") @db.Char(36)
+  product   Product @relation("Products_Have_Categories", fields: [productId], references: [productId], onDelete: Cascade)
+
+  categoryId String   @map("category_id") @db.Char(36)
+  category   Category @relation("Categories_Contain_Products", fields: [categoryId], references: [categoryId], onDelete: Cascade)
+
+  @@id([productId, categoryId])
+  @@map("products_categories")
+}
+
+model ProductImage {
+  imageId String @id @default(uuid()) @map("product_image_id") @db.Char(36)
+
+  productId String  @map("product_id") @db.Char(36)
+  product   Product @relation("Product_Has_Images", fields: [productId], references: [productId], onDelete: Cascade)
+
+  imageUrl  String   @map("image_url") @db.VarChar(255)
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@map("product_images")
 }

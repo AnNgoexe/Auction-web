@@ -1,7 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
 import { AddressResponseDto } from '@modules/address/dtos/address.response.dto';
 import { CreateAddressDto } from '@modules/address/dtos/create-address.body.dto';
+import {
+  MAX_ADDRESS_COUNT,
+  ERROR_TOO_MANY_ADDRESSES,
+} from '@modules/address/address.constant';
 
 @Injectable()
 export class AddressService {
@@ -29,6 +33,10 @@ export class AddressService {
     userId: string,
     newAddresses: CreateAddressDto[],
   ): Promise<void> {
+    if (newAddresses.length > MAX_ADDRESS_COUNT) {
+      throw new BadRequestException(ERROR_TOO_MANY_ADDRESSES);
+    }
+
     await this.prisma.$transaction(async (prisma) => {
       await prisma.address.deleteMany({
         where: { userId },
