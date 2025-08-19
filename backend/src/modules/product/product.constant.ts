@@ -27,3 +27,15 @@ export const ERROR_CANNOT_SET_STATUS_SOLD = {
   errorCode: 'CANNOT_SET_STATUS_SOLD',
   message: 'Cannot manually set status to SOLD',
 };
+
+export const ERROR_PRODUCT_STOCK_INSUFFICIENT = (productId: string) => ({
+  statusCode: 400,
+  message: `Insufficient stock for product ${productId}`,
+  errorCode: 'INSUFFICIENT_PRODUCT_STOCK',
+});
+
+export const ERROR_PRODUCT_NOT_AVAILABLE = (productName: string) => ({
+  statusCode: 404,
+  message: `Product not available: ${productName}`,
+  errorCode: 'PRODUCT_NOT_AVAILABLE',
+});

@@ -12,9 +12,11 @@ import {
   ERROR_CANNOT_UPDATE_SOLD_PRODUCT,
   ERROR_CATEGORIES_NOT_FOUND,
   ERROR_NO_PRODUCTS_PROVIDED,
+  ERROR_PRODUCT_NOT_AVAILABLE,
   ERROR_PRODUCT_NOT_FOUND,
+  ERROR_PRODUCT_STOCK_INSUFFICIENT,
 } from '@modules/product/product.constant';
-import { ProductStatus } from '@prisma/client';
+import { Prisma, ProductStatus } from '@prisma/client';
 import { ProductDto } from '@modules/product/dtos/multi-products.response.dto';
 import { ProductImageService } from '@modules/product-image/product-image.service';
 import { ProductCategoryService } from '@modules/product-category/product-category.service';
@@ -278,5 +280,49 @@ export class ProductService {
         hasPrevPage: currentPage > 1,
       },
     };
+  }
+
+  async adjustProductStock(
+    tx: Prisma.TransactionClient,
+    products: { productId: string; quantity: number }[],
+    action: 'decrement' | 'increment' = 'decrement',
+  ): Promise<void> {
+    const productIds = products.map(p => p.productId);
+
+    const foundProducts = await tx.product.findMany({
+      where: { productId: { in: productIds } },
+    });
+
+    if (foundProducts.length !== productIds.length) {
+      throw new NotFoundException(ERROR_PRODUCT_NOT_FOUND);
+    }
+
+    const productMap = new Map(foundProducts.map(p => [p.productId, p]));
+
+    for (const { productId, quantity } of products) {
+      const product = productMap.get(productId);
+      if (!product) continue;
+
+      if (product.status !== 'ACTIVE') {
+        const { statusCode, message, errorCode } = ERROR_PRODUCT_NOT_AVAILABLE(product.name);
+        throw new BadRequestException({ statusCode, message, errorCode });
+      }
+
+      if (action === 'decrement') {
+        if (product.stockQuantity < quantity) {
+          const { statusCode, message, errorCode } = ERROR_PRODUCT_STOCK_INSUFFICIENT(productId);
+          throw new BadRequestException({ statusCode, message, errorCode });
+        }
+        await tx.product.update({
+          where: { productId },
+          data: { stockQuantity: { decrement: quantity } },
+        });
+      } else {
+        await tx.product.update({
+          where: { productId },
+          data: { stockQuantity: { increment: quantity } },
+        });
+      }
+    }
   }
 }

@@ -47,6 +47,11 @@ model User {
   issuedWarnings   Warning[] @relation("User_Issued_Warnings")
   warningCount     Int       @default(0) @map("warning_count")
 
+  wonAuctions    Auction[] @relation("User_Wins_Auctions")
+  createdAuction Auction[] @relation("Seller_Creates_Auctions")
+
+  bid Bid[] @relation("User_Has_Bids")
+
   @@map("users")
 }
 
@@ -190,6 +195,7 @@ model Product {
 
   productCategories ProductCategory[] @relation("Products_Have_Categories")
   images            ProductImage[]    @relation("Product_Has_Images")
+  auctionProducts   AuctionProduct[]  @relation("Product_In_Auctions")
 
   @@map("products")
 }
@@ -246,4 +252,80 @@ model ProductImage {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   @@map("product_images")
+}
+
+enum AuctionStatus {
+  PENDING
+  READY
+  OPEN
+  CLOSED
+  CANCELED
+  COMPLETED
+  EXTENDED
+}
+
+model Auction {
+  auctionId String @id @default(uuid()) @map("auction_id") @db.Char(36)
+  title     String @db.VarChar(255)
+
+  sellerId String @map("seller_id") @db.Char(36)
+  seller   User   @relation("Seller_Creates_Auctions", fields: [sellerId], references: [userId], onDelete: Cascade)
+
+  auctionProducts AuctionProduct[] @relation("Auction_Has_Products")
+
+  startTime     DateTime @map("start_time") @db.Timestamp(0)
+  endTime       DateTime @map("end_time") @db.Timestamp(0)
+  currentPrice  Decimal  @map("current_price") @db.Decimal(10, 2)
+  startingPrice Decimal  @map("starting_price") @db.Decimal(10, 2)
+
+  winnerId String? @map("winner_id") @db.Char(36)
+  winner   User?   @relation("User_Wins_Auctions", fields: [winnerId], references: [userId], onDelete: SetNull)
+
+  status              AuctionStatus @default(PENDING)
+  cancelReason        String?       @map("cancel_reason") @db.Text
+  minimumBidIncrement Decimal       @map("minimum_bid_increment") @db.Decimal(10, 2)
+  lastBidTime         DateTime      @map("last_bid_time") @db.Timestamp(0)
+  bidCount            BigInt        @default(0) @map("bid_count")
+  createdAt           DateTime      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  bids Bid[] @relation("Auction_Has_Bids")
+
+  @@map("auctions")
+}
+
+model AuctionProduct {
+  id String @id @default(uuid()) @map("auction_product_id") @db.Char(36)
+
+  auctionId String  @map("auction_id") @db.Char(36)
+  auction   Auction @relation("Auction_Has_Products", fields: [auctionId], references: [auctionId], onDelete: Cascade)
+
+  productId String  @map("product_id") @db.Char(36)
+  product   Product @relation("Product_In_Auctions", fields: [productId], references: [productId], onDelete: Cascade)
+
+  quantity Int @default(1) @db.Int
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([auctionId, productId])
+  @@map("auction_products")
+}
+
+model Bid {
+  bidId String @id @default(uuid()) @map("bid_id") @db.Char(36)
+
+  auctionId String  @map("auction_id") @db.Char(36)
+  auction   Auction @relation("Auction_Has_Bids", fields: [auctionId], references: [auctionId], onDelete: Cascade)
+
+  userId String @map("user_id") @db.Char(36)
+  user   User   @relation("User_Has_Bids", fields: [userId], references: [userId], onDelete: Cascade)
+
+  bidAmount Decimal @map("bid_amount") @db.Decimal(19, 4)
+
+  isHidden Boolean @default(false) @map("is_hidden")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@map("bids")
 }

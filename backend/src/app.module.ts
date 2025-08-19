@@ -15,6 +15,7 @@ import { FollowModule } from '@modules/follow/follow.module';
 import { ProfileModule } from '@modules/profile/profile.module';
 import { AddressModule } from '@modules/address/address.module';
 import { ProductModule } from '@modules/product/product.module';
+import { AuctionModule } from '@modules/auction/auction.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ProductModule } from '@modules/product/product.module';
     ProfileModule,
     AddressModule,
     ProductModule,
+    AuctionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
