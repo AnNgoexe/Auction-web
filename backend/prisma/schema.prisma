@@ -43,7 +43,27 @@ model User {
 
   products Product[] @relation("Seller_Sell_Products")
 
+  receivedWarnings Warning[] @relation("User_Received_Warnings")
+  issuedWarnings   Warning[] @relation("User_Issued_Warnings")
+  warningCount     Int       @default(0) @map("warning_count")
+
   @@map("users")
+}
+
+model Warning {
+  warningId String @id @default(uuid())
+
+  userId String
+  user   User   @relation("User_Received_Warnings", fields: [userId], references: [userId], onDelete: Cascade)
+
+  adminId String
+  admin   User   @relation("User_Issued_Warnings", fields: [adminId], references: [userId])
+
+  reason      String
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("warnings")
 }
 
 model RefreshToken {

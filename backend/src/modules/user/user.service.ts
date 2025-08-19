@@ -1,11 +1,23 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@common/services/prisma.service';
-import { ERROR_USER_NOT_EXIST } from '@modules/user/user.constant';
+import {
+  ERROR_USER_ALREADY_BANNED,
+  ERROR_USER_NOT_BANNED,
+  ERROR_USER_NOT_EXIST,
+  ERROR_WARNING_NOT_FOUND,
+} from '@modules/user/user.constant';
 import { UserInfoResponseDto } from '@modules/user/dtos/user-info.response.dto';
 import { CreateUserResponseDto } from '@modules/user/dtos/create-user.response.dto';
 import { UserQueryDto } from '@modules/user/dtos/get-users.query.dto';
 import { Prisma } from '@prisma/client';
 import { PaginationResult } from '@common/types/pagination.interface';
+import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
+import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
+import { UserWarningStatusDto } from '@modules/user/dtos/get-warning.response.dto';
 
 @Injectable()
 export class UserService {
@@ -168,6 +180,187 @@ export class UserService {
         hasNextPage: currentPage < totalPages,
         hasPrevPage: currentPage > 1,
       },
+    };
+  }
+
+  async createWarning(
+    userId: string,
+    createWarningDto: CreateWarningDto,
+    adminId: string,
+  ): Promise<UserWarningStatusDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId: userId },
+    });
+
+    if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    if (user.isBanned) throw new ConflictException(ERROR_USER_ALREADY_BANNED);
+
+    return this.prisma.$transaction(async (prisma) => {
+      await prisma.warning.create({
+        data: {
+          userId,
+          adminId,
+          reason: createWarningDto.reason,
+          description: createWarningDto.description,
+        },
+      });
+
+      const warningCount = await prisma.warning.count({ where: { userId } });
+      const updatedUser = await prisma.user.update({
+        where: { userId },
+        data: {
+          warningCount,
+          isBanned: warningCount >= 3,
+        },
+        select: {
+          userId: true,
+          warningCount: true,
+          isBanned: true,
+          receivedWarnings: {
+            select: {
+              warningId: true,
+              userId: true,
+              adminId: true,
+              reason: true,
+              description: true,
+              createdAt: true,
+            },
+          },
+        },
+      });
+
+      return {
+        userId: updatedUser.userId,
+        warningCount: updatedUser.warningCount,
+        isBanned: updatedUser.isBanned,
+        warnings: updatedUser.receivedWarnings,
+      };
+    });
+  }
+
+  async banUser(userId: string): Promise<BanUserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    }
+
+    if (user.isBanned) {
+      throw new ConflictException(ERROR_USER_ALREADY_BANNED);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { userId },
+      data: { isBanned: true },
+    });
+
+    return {
+      userId: updatedUser.userId,
+      email: updatedUser.email,
+      isBanned: updatedUser.isBanned,
+      warningCount: updatedUser.warningCount,
+      bannedAt: updatedUser.updatedAt,
+    };
+  }
+
+  async unbanUser(userId: string): Promise<BanUserResponseDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    }
+
+    if (!user.isBanned) {
+      throw new ConflictException(ERROR_USER_NOT_BANNED);
+    }
+
+    const updatedUser = await this.prisma.user.update({
+      where: { userId },
+      data: { isBanned: false },
+    });
+
+    return {
+      userId: updatedUser.userId,
+      email: updatedUser.email,
+      isBanned: updatedUser.isBanned,
+      warningCount: updatedUser.warningCount,
+    };
+  }
+
+  async getUserWarnings(userId: string): Promise<UserWarningStatusDto> {
+    const user = await this.prisma.user.findUnique({
+      where: { userId },
+      include: {
+        receivedWarnings: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    }
+
+    return {
+      userId: user.userId,
+      warningCount: user.warningCount,
+      isBanned: user.isBanned,
+      warnings: user.receivedWarnings.map((w) => ({
+        warningId: w.warningId,
+        userId: w.userId,
+        adminId: w.adminId,
+        reason: w.reason,
+        description: w.description,
+        createdAt: w.createdAt,
+      })),
+    };
+  }
+
+  async removeWarning(warningId: string): Promise<UserWarningStatusDto> {
+    const warning = await this.prisma.warning.findUnique({
+      where: { warningId },
+    });
+    if (!warning) throw new NotFoundException(ERROR_WARNING_NOT_FOUND);
+
+    const result = await this.prisma.$transaction(async (prisma) => {
+      await prisma.warning.delete({ where: { warningId } });
+      const newWarningCount = await prisma.warning.count({
+        where: { userId: warning.userId },
+      });
+
+      const updatedUser = await prisma.user.update({
+        where: { userId: warning.userId },
+        data: {
+          warningCount: newWarningCount,
+          isBanned: newWarningCount >= 3,
+        },
+      });
+
+      const remainingWarnings = await prisma.warning.findMany({
+        where: { userId: warning.userId },
+        orderBy: { createdAt: 'asc' },
+      });
+
+      return {
+        user: updatedUser,
+        warnings: remainingWarnings,
+      };
+    });
+
+    return {
+      userId: result.user.userId,
+      warningCount: result.user.warningCount,
+      isBanned: result.user.isBanned,
+      warnings: result.warnings.map((w) => ({
+        warningId: w.warningId,
+        userId: w.userId,
+        adminId: w.adminId,
+        reason: w.reason,
+        description: w.description ?? undefined,
+        createdAt: w.createdAt,
+      })),
     };
   }
 }
