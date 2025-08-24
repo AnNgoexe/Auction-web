@@ -7,7 +7,7 @@ export const ERROR_INTERNAL_SERVER = {
 export const ERROR_CLASS_VALIDATION_FAILED = {
   statusCode: 400,
   message: 'Class validation failed',
-  errorCode: 'ERROR_CLASS_VALIDATION_FAILED',
+  errorCode: 'CLASS_VALIDATION_FAILED',
 };
 
 export const ERROR_ACCESS_TOKEN_EXPIRED = {
@@ -66,6 +66,6 @@ export const ERROR_USER_FORBIDDEN = {
 
 export const ERROR_USER_UNVERIFIED = {
   statusCode: 401,
-  code: 'USER_UNVERIFIED',
+  code: 'USER_IS_UNVERIFIED',
   message: 'Your account has not been verified yet.',
 };

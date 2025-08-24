@@ -26,6 +26,7 @@ import { Auth } from '@common/decorators/auth.decorator';
 import { Roles } from '@common/decorators/roles.decorator';
 import { Role } from '@prisma/client';
 import { ResponsePayload } from '@common/types/response.interface';
+import { ExtendAuctionDto } from '@modules/auction/dtos/extend-auction.body.dto';
 
 @Controller('auctions')
 export class AuctionController {
@@ -138,6 +139,41 @@ export class AuctionController {
     return {
       message: 'Auctions retrieved successfully',
       data: result,
+    };
+  }
+
+  @Patch(':id/reopen')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER, Role.ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async reopenAuction(
+    @Req() req: Request,
+    @Param('id') auctionId: string,
+  ): Promise<ResponsePayload> {
+    const userId = req.user?.userId as string;
+    const userRole = req.user?.role as Role;
+
+    await this.auctionService.reopenAuction(userId, userRole, auctionId);
+    return {
+      message: 'Auction reopened successfully',
+      data: {},
+    };
+  }
+
+  @Patch(':id/extend')
+  @Auth(AuthType.ACCESS_TOKEN)
+  @Roles(Role.SELLER)
+  @HttpCode(HttpStatus.OK)
+  async extendAuction(
+    @Req() req: Request,
+    @Param('id') auctionId: string,
+    @Body() dto: ExtendAuctionDto,
+  ): Promise<ResponsePayload> {
+    const sellerId = req.user?.userId as string;
+    await this.auctionService.extendAuction(sellerId, auctionId, dto);
+    return {
+      message: 'Auction extended successfully',
+      data: {},
     };
   }
 }

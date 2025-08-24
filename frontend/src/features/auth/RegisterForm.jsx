@@ -12,15 +12,51 @@ const RegisterForm = () => {
     confirmPassword, setConfirmPassword,
     isSeller, setIsSeller,
     agreeToTerms, setAgreeToTerms,
-    error, loading, success, handleSubmit
+    error, setError, loading, handleSubmit
   } = useRegister();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  if (success) {
-    navigate('/auth/verify-otp', { state: { email } });
-  }
+  // onSubmit - Handle form submission
+  const onSubmit = async (e) => {
+    const { email, userId } = await handleSubmit(e);
+    if (email && userId) {
+      navigate("/auth/verify-otp", {
+        state: { email: email, userId: userId, isForgotPassword: false },
+      });
+    }
+  };
+
+  // onChange - Handle username input change
+  const handleUsernameChange = (e) => {
+    setUsername(() => e.target.value);
+    setError(prev => ({ ...prev, username: null }));
+  };
+
+  // onChange - Handle email input change
+  const handleEmailChange = (e) => {
+    setEmail(() => e.target.value);
+    setError(prev => ({ ...prev, email: null }));
+  };
+
+  // onChange - Handle password input change
+  const handlePasswordChange = (e) => {
+    setPassword(()=> e.target.value);
+    setError(prev => ({ ...prev, password: null }));
+  };
+
+  // onChange - Handle confirm password input change
+  const handleConfirmPasswordChange = (e) => {
+    setConfirmPassword(() => e.target.value);
+    setError(prev => ({ ...prev, confirmPassword: null }));
+  };
+
+  // onClick - Toggle show/hide password when clicking the eye icon
+  const togglePassword = () => { setShowPassword(prev => !prev) };
+
+  // onClick - Toggle show/hide password when clicking the eye icon
+  const toggleConfirmPassword = () => { setShowConfirmPassword(prev => !prev) };
 
   return (
     <section className="register pt-16 relative">
@@ -46,7 +82,7 @@ const RegisterForm = () => {
         </Container>
       </div>
       <div className="transition-all duration-500 ease-in-out transform translate-x-0">
-        <form onSubmit={handleSubmit} className="bg-white shadow-s3 w-1/3 m-auto my-16 p-8 rounded-xl">
+        <form onSubmit={onSubmit} className="bg-white shadow-s3 w-1/3 m-auto my-16 p-8 rounded-xl">
           <div className="text-center">
             <Title level={5}>Sign Up</Title>
             <p className="mt-2 text-lg">
@@ -62,7 +98,7 @@ const RegisterForm = () => {
               type="text"
               name="username"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={handleUsernameChange}
               className={commonClassNameOfInput}
               placeholder="User Name"
               required
@@ -77,7 +113,7 @@ const RegisterForm = () => {
               type="email"
               name="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               className={commonClassNameOfInput}
               placeholder="Enter Your Email"
               required
@@ -92,14 +128,14 @@ const RegisterForm = () => {
               type={showPassword ? "text" : "password"}
               name="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
               className={commonClassNameOfInput}
               placeholder="Enter Your Password"
               required
             />
             <span
               className="absolute right-3 top-16 cursor-pointer select-none"
-              onClick={() => setShowPassword(!showPassword)}
+              onClick={togglePassword}
             >
               {showPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
             </span>
@@ -113,14 +149,14 @@ const RegisterForm = () => {
               type={showConfirmPassword ? "text" : "password"}
               name="confirmPassword"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              onChange={handleConfirmPasswordChange}
               className={commonClassNameOfInput}
               placeholder="Confirm password"
               required
             />
             <span
               className="absolute right-3 top-16 cursor-pointer select-none"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={toggleConfirmPassword}
             >
               {showConfirmPassword ? <AiOutlineEyeInvisible size={20} /> : <AiOutlineEye size={20} />}
             </span>

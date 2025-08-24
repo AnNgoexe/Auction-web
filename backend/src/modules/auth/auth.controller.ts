@@ -21,6 +21,7 @@ import { VerifyOtpDto } from '@modules/auth/dtos/verify-otp.body.dto';
 import { LogoutBodyDto } from '@modules/auth/dtos/logout.body.dto';
 import { CheckEmailResponseDto } from '@modules/auth/dtos/check-mail.response.dto';
 import { CheckEmailBodyDto } from '@modules/auth/dtos/check-mail.body.dto';
+import { ResendOtpEmailDto } from '@modules/auth/dtos/resend-otp.body.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -126,6 +127,16 @@ export class AuthController {
     return {
       message: 'Email exists',
       data: result,
+    };
+  }
+
+  @Post('send-otp')
+  @HttpCode(HttpStatus.OK)
+  async sendOtp(@Body() dto: ResendOtpEmailDto): Promise<ResponsePayload> {
+    await this.authService.sendOtpEmail(dto.email, dto.type);
+    return {
+      message: 'OTP has been sent successfully',
+      data: {},
     };
   }
 }

@@ -7,12 +7,14 @@ import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const { user } = useUser();
-  const { email, setEmail, password, setPassword, handleSubmit, error, needVerification, loading } = useSignin();
+  const { email, setEmail, password, setPassword, handleSubmit, error, setError, loading } = useSignin();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
 
+  // onClick - Toggle show/hide password when clicking the eye icon
   const togglePassword = () => {setShowPassword((prev) => !prev)}
 
+  // If login, navigate directly to home page
   useEffect(() => {
     const isLoggedIn =
       user.userId !== null &&
@@ -28,11 +30,31 @@ const LoginForm = () => {
     }
   }, [user, navigate]);
 
-  useEffect(() => {
-    if (needVerification) {
-      navigate(`/auth/verify-otp`, { state: { email }});
+  // onSubmit - Handle form submission
+  const onSubmit = async (e) => {
+    const data = await handleSubmit(e);
+    if (data && data.email && data.userId && data.needVerification) {
+      navigate("/auth/verify-otp", {
+        state: { email: data.email, userId: data.userId, isForgotPassword: false },
+      });
     }
-  }, [needVerification, email, navigate]);
+  };
+
+  // onChange - Handle email input change
+  const handleEmailChange = (e) => {
+    if (error?.email) {
+      setError(prev => ({ ...prev, email: null }));
+    }
+    setEmail(() => e.target.value);
+  };
+
+  // onChange - Handle password input change
+  const handlePasswordChange = (e) => {
+    if (error?.password) {
+      setError(prev => ({ ...prev, password: null }));
+    }
+    setPassword(() => e.target.value);
+  };
 
   return (
     <section className="register pt-16 relative">
@@ -51,7 +73,7 @@ const LoginForm = () => {
       </div>
       <div className="transition-all duration-500 ease-in-out transform translate-x-0">
         <div className="bg-white shadow-s3 w-1/3 m-auto my-16 p-8 rounded-xl">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={onSubmit}>
             <div className="text-center">
               <Title level={5}>Sign in</Title>
               <p className="mt-2 text-lg">
@@ -66,7 +88,7 @@ const LoginForm = () => {
                 name="email"
                 value={email}
                 className={`w-full pl-10 pr-10 ${commonClassNameOfInput}`}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => handleEmailChange(e)}
                 placeholder="Enter Your Email"
                 required
               />
@@ -84,7 +106,7 @@ const LoginForm = () => {
                 name="password"
                 value={password}
                 className={`w-full pl-10 pr-10 ${commonClassNameOfInput}`}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => handlePasswordChange(e)}
                 placeholder="Enter Your Password"
                 required
               />

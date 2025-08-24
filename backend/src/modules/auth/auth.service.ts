@@ -11,12 +11,13 @@ import { UserService } from '@modules/user/user.service';
 import { TokenService } from '@common/services/token.service';
 import {
   ERROR_EMAIL_ALREADY_EXISTS,
-  ERROR_EMAIL_NOT_FOUND,
+  ERROR_EMAIL_ALREADY_VERIFIED,
+  ERROR_USER_NOT_FOUND,
   ERROR_INVALID_LOGOUT_TOKEN,
   ERROR_INVALID_PASSWORD,
   ERROR_PASSWORD_CONFIRM_MISMATCH,
   ERROR_REFRESH_TOKEN_NOT_FOUND,
-  ERROR_USER_IS_BANNED,
+  ERROR_USER_BLOCKED,
   ERROR_USERNAME_ALREADY_EXISTS,
 } from '@modules/auth/auth.constant';
 import {
@@ -56,7 +57,7 @@ export class AuthService {
     const { email, password, provider = 'local' } = loginBodyDto;
     const user = await this.userService.findUser(email);
 
-    if (user.isBanned) throw new ForbiddenException(ERROR_USER_IS_BANNED);
+    if (user.isBanned) throw new ForbiddenException(ERROR_USER_BLOCKED);
     if (provider === 'local') {
       const isPasswordValid = await this.passwordService.comparePassword(
         password,
@@ -155,7 +156,7 @@ export class AuthService {
 
     const user = await this.userService.findUserById(payload.userId);
     if (!user || user.isBanned) {
-      throw new ForbiddenException(ERROR_USER_IS_BANNED);
+      throw new ForbiddenException(ERROR_USER_BLOCKED);
     }
 
     const { accessToken, refreshToken: newRefreshToken } =
@@ -200,7 +201,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new NotFoundException(ERROR_EMAIL_NOT_FOUND);
+      throw new NotFoundException(ERROR_USER_NOT_FOUND);
     }
 
     const otpCode = await this.otpService.createOrUpdateOtp(
@@ -241,6 +242,22 @@ export class AuthService {
       refreshToken,
       provider,
     );
+  }
+
+  async sendOtpEmail(email: string, type: OtpType): Promise<void> {
+    const user = await this.userService.findUser(email);
+
+    if (type === OtpType.VERIFY_EMAIL && user.isVerified) {
+      throw new BadRequestException(ERROR_EMAIL_ALREADY_VERIFIED);
+    }
+
+    const otpCode = await this.otpService.createOrUpdateOtp(user.userId, type);
+    const mailType =
+      type === OtpType.VERIFY_EMAIL
+        ? MailType.VERIFY_EMAIL
+        : MailType.RESET_PASSWORD;
+
+    await this.mailService.sendMail(user.email, otpCode, mailType);
   }
 
   private async generateTokens(

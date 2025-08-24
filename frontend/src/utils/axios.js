@@ -14,7 +14,12 @@ const FORCE_LOGOUT_CODES = new Set([
   'INVALID_REFRESH_TOKEN',
   'UNKNOWN_REFRESH_TOKEN',
   'INTERNAL_SERVER_ERROR',
-  'USER_FORBIDDEN_ERROR',
+  'USER_IS_BANNED',
+  'USER_IS_UNVERIFIED',
+  'USER_NOT_PERMISSION',
+  'USER_NOT_EXIST',
+  'INVALID_LOGOUT_TOKEN',
+  'REFRESH_TOKEN_NOT_FOUND',
 ]);
 
 const axiosClient = axios.create({
@@ -79,7 +84,7 @@ axiosClient.interceptors.response.use(
     if (forceLogout) {
       clearTokens();
       clearUser();
-      window.location.href = '/login';
+      window.location.href = 'auth/login';
       return Promise.reject(error);
     }
 

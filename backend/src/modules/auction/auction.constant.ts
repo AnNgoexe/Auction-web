@@ -43,5 +43,29 @@ export const ERROR_AUCTION_NOT_REOPENED = {
 export const ERROR_AUCTION_NOT_SELLER = {
   statusCode: 403,
   message: 'You are not the seller of this auction.',
-  errorCode: 'AUCTION_NOT_SELLER',
+  errorCode: 'USER_NOT_PERMISSION',
+};
+
+export const ERROR_AUCTION_NOT_CLOSED = {
+  statusCode: 400,
+  message: 'Auction is not closed and cannot be reopened.',
+  errorCode: 'AUCTION_NOT_CLOSED',
+};
+
+export const ERROR_AUCTION_ALREADY_ENDED = {
+  statusCode: 400,
+  message: 'Auction has already ended and cannot be reopened.',
+  errorCode: 'AUCTION_ALREADY_ENDED',
+};
+
+export const ERROR_AUCTION_NOT_OPEN = {
+  statusCode: 400,
+  message: 'Auction is not open and cannot be extended.',
+  errorCode: 'AUCTION_NOT_OPEN',
+};
+
+export const ERROR_INVALID_NEW_END_TIME = {
+  statusCode: 400,
+  message: 'New end time must be after current end time.',
+  errorCode: 'INVALID_NEW_END_TIME',
 };

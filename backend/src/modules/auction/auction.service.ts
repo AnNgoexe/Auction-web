@@ -9,13 +9,17 @@ import { ProductService } from '@modules/product/product.service';
 import { CreateAuctionBodyDto } from '@modules/auction/dtos/create-auction.body.dto';
 import { CreateAuctionResponseDto } from '@modules/auction/dtos/create-auction.response.dto';
 import {
+  ERROR_AUCTION_ALREADY_ENDED,
   ERROR_AUCTION_NOT_CANCELLABLE,
   ERROR_AUCTION_NOT_CLOSABLE,
+  ERROR_AUCTION_NOT_CLOSED,
   ERROR_AUCTION_NOT_FOUND,
+  ERROR_AUCTION_NOT_OPEN,
   ERROR_AUCTION_NOT_PENDING,
   ERROR_AUCTION_NOT_SELLER,
   ERROR_AUCTION_START_TIME_IN_PAST,
   ERROR_INVALID_AUCTION_TIME,
+  ERROR_INVALID_NEW_END_TIME,
 } from '@modules/auction/auction.constant';
 import { AuctionStatus, Prisma, Role } from '@prisma/client';
 import {
@@ -28,6 +32,7 @@ import { ERROR_PRODUCT_NOT_FOUND } from '@modules/product/product.constant';
 import { SearchAuctionQueryDto } from '@modules/auction/dtos/search-auction.query.dto';
 import { PaginationResult } from '@common/types/pagination.interface';
 import { AuctionListItemDto } from '@modules/auction/dtos/search-auction.response.dto';
+import { ExtendAuctionDto } from '@modules/auction/dtos/extend-auction.body.dto';
 
 @Injectable()
 export class AuctionService {
@@ -438,5 +443,83 @@ export class AuctionService {
         hasPrevPage: offset > 0,
       },
     };
+  }
+
+  async reopenAuction(
+    userId: string,
+    userRole: Role,
+    auctionId: string,
+  ): Promise<void> {
+    const auction = await this.prisma.auction.findUnique({
+      where: { auctionId },
+    });
+
+    if (!auction) {
+      throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+    }
+
+    if (userRole !== Role.ADMIN && auction.sellerId !== userId) {
+      throw new ForbiddenException(ERROR_AUCTION_NOT_SELLER);
+    }
+
+    if (auction.status !== AuctionStatus.CLOSED) {
+      throw new BadRequestException(ERROR_AUCTION_NOT_CLOSED);
+    }
+
+    const now = new Date();
+    if (now > auction.endTime) {
+      throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
+    }
+
+    await this.prisma.auction.update({
+      where: { auctionId },
+      data: {
+        status: AuctionStatus.OPEN,
+        lastBidTime: now,
+      },
+    });
+  }
+
+  async extendAuction(
+    sellerId: string,
+    auctionId: string,
+    dto: ExtendAuctionDto,
+  ): Promise<void> {
+    const auction = await this.prisma.auction.findUnique({
+      where: { auctionId },
+    });
+
+    if (!auction) {
+      throw new NotFoundException(ERROR_AUCTION_NOT_FOUND);
+    }
+
+    if (auction.sellerId !== sellerId) {
+      throw new ForbiddenException(ERROR_AUCTION_NOT_SELLER);
+    }
+
+    if (
+      auction.status !== AuctionStatus.OPEN &&
+      auction.status !== AuctionStatus.EXTENDED
+    ) {
+      throw new BadRequestException(ERROR_AUCTION_NOT_OPEN);
+    }
+
+    const now = new Date();
+    if (now > auction.endTime) {
+      throw new BadRequestException(ERROR_AUCTION_ALREADY_ENDED);
+    }
+
+    const newEndTime = new Date(dto.newEndTime);
+    if (newEndTime <= auction.endTime) {
+      throw new BadRequestException(ERROR_INVALID_NEW_END_TIME);
+    }
+
+    await this.prisma.auction.update({
+      where: { auctionId },
+      data: {
+        endTime: newEndTime,
+        status: AuctionStatus.EXTENDED,
+      },
+    });
   }
 }

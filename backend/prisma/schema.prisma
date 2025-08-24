@@ -52,6 +52,10 @@ model User {
 
   bid Bid[] @relation("User_Has_Bids")
 
+  watchlist Watchlist[] @relation("User_Has_Watchlist")
+
+  productComments ProductComment[] @relation("User_Has_ProductComments")
+
   @@map("users")
 }
 
@@ -197,6 +201,8 @@ model Product {
   images            ProductImage[]    @relation("Product_Has_Images")
   auctionProducts   AuctionProduct[]  @relation("Product_In_Auctions")
 
+  comments ProductComment[] @relation("Product_Has_Comments")
+
   @@map("products")
 }
 
@@ -291,6 +297,8 @@ model Auction {
 
   bids Bid[] @relation("Auction_Has_Bids")
 
+  watchlist Watchlist[] @relation("Auction_In_Watchlist")
+
   @@map("auctions")
 }
 
@@ -328,4 +336,37 @@ model Bid {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   @@map("bids")
+}
+
+model Watchlist {
+  watchlistId String @id @default(uuid()) @map("watchlist_id") @db.Char(36)
+
+  userId String @map("user_id") @db.Char(36)
+  user   User   @relation("User_Has_Watchlist", fields: [userId], references: [userId], onDelete: Cascade)
+
+  auctionId String  @map("auction_id") @db.Char(36)
+  auction   Auction @relation("Auction_In_Watchlist", fields: [auctionId], references: [auctionId], onDelete: Cascade)
+
+  addedAt DateTime @default(now()) @map("added_at") @db.Timestamp(0)
+
+  @@unique([userId, auctionId])
+  @@map("watchlists")
+}
+
+model ProductComment {
+  commentId String @id @default(uuid()) @map("comment_id") @db.Char(36)
+
+  productId String  @map("product_id") @db.Char(36)
+  product   Product @relation("Product_Has_Comments", fields: [productId], references: [productId], onDelete: Cascade)
+
+  userId String @map("user_id") @db.Char(36)
+  user   User   @relation("User_Has_ProductComments", fields: [userId], references: [userId], onDelete: Cascade)
+
+  content String @db.Text
+  rating  Int?   @db.Int // Rating from 1-5 stars (optional)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("product_comments")
 }

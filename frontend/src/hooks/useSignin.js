@@ -9,7 +9,6 @@ export const useSignin = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState({email: "", password: ""});
   const [loading, setLoading] = useState(false);
-  const [needVerification, setNeedVerification] = useState(false);
   const { showToastNotification } = useNotification();
   const navigate = useNavigate();
   const { login } = useUser();
@@ -31,8 +30,7 @@ export const useSignin = () => {
       const { accessToken, refreshToken, user } = response.data;
 
       if (!user.isVerified) {
-        setNeedVerification(true);
-        return;
+        return { email: user.email, userId: user.userId, needVerification: true };
       }
 
       login({
@@ -64,5 +62,5 @@ export const useSignin = () => {
     }
   };
 
-  return { email, setEmail, password, setPassword, handleSubmit, error, needVerification, loading };
+  return { email, setEmail, password, setPassword, handleSubmit, error, setError, loading };
 };

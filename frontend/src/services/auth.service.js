@@ -5,6 +5,10 @@ const AUTH_API = {
   LOGIN: '/auth/login',
   REFRESH_TOKEN: 'auth/refresh-token',
   REGISTER: '/auth/register',
+  RESEND_OTP: '/auth/send-otp',
+  VERIFY_OTP: '/auth/verify-otp',
+  CHECK_EMAIL: '/auth/check-email',
+  RESET_PASSWORD: '/auth/reset-password',
 };
 
 export const authService = {
@@ -60,5 +64,61 @@ export const authService = {
         errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
       });
     }
-  }
+  },
+
+  resendOtp: async (payload) => {
+    try {
+      const response = await axiosClient.post(AUTH_API.RESEND_OTP, payload);
+      return response.data;
+    } catch (err) {
+      const { message, errorCode, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Failed to resend OTP',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  },
+
+  verifyOtp: async (payload) => {
+    try {
+      const response = await axiosClient.post(AUTH_API.VERIFY_OTP, payload);
+      return response.data;
+    } catch (err) {
+      const { message, errorCode, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Failed to verify OTP',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  },
+
+  checkEmail: async (payload) => {
+    try {
+      const response = await axiosClient.post(AUTH_API.CHECK_EMAIL, payload);
+      return response.data;
+    } catch (err) {
+      const { message, errorCode, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Failed to check email',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  },
+
+  resetPassword: async (payload) => {
+    try {
+      const response = await axiosClient.post(AUTH_API.RESET_PASSWORD, payload);
+      return response.data;
+    } catch (err) {
+      const { message, errorCode, statusCode } = err?.response?.data || {};
+      return Promise.reject({
+        statusCode: statusCode || 500,
+        message: message || 'Failed to reset password',
+        errorCode: errorCode || 'INTERNAL_SERVER_ERROR',
+      });
+    }
+  },
 };

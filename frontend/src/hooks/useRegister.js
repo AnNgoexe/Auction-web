@@ -11,7 +11,6 @@ export const useRegister = () => {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [error, setError] = useState({ email: "", username: "", password: "", confirmPassword: "" });
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const { showToastNotification } = useNotification();
 
   const handleSubmit = async (e) => {
@@ -58,9 +57,9 @@ export const useRegister = () => {
 
     try {
       setLoading(true);
-      await authService.register({ email, username, password, isSeller });
-      showToastNotification("Registered successfully! Please verify your email.", "success");
-      setSuccess(true);
+      const { message, data } = await authService.register({ email, username, password, isSeller });
+      showToastNotification(message, "success");
+      return data;
     } catch (err) {
       const {errorCode, message} = err;
       if (errorCode === "EMAIL_ALREADY_EXISTS") {
@@ -84,7 +83,6 @@ export const useRegister = () => {
     agreeToTerms, setAgreeToTerms,
     error, setError,
     loading,
-    success, setSuccess,
     handleSubmit,
   };
 }

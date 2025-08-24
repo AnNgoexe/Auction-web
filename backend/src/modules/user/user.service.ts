@@ -18,6 +18,7 @@ import { PaginationResult } from '@common/types/pagination.interface';
 import { CreateWarningDto } from '@modules/user/dtos/create-warning.body.dto';
 import { BanUserResponseDto } from '@modules/user/dtos/ban-user.response.dto';
 import { UserWarningStatusDto } from '@modules/user/dtos/get-warning.response.dto';
+import { ERROR_USER_NOT_FOUND } from '@modules/auth/auth.constant';
 
 @Injectable()
 export class UserService {
@@ -37,7 +38,7 @@ export class UserService {
       },
     });
 
-    if (!user) throw new NotFoundException(ERROR_USER_NOT_EXIST);
+    if (!user) throw new NotFoundException(ERROR_USER_NOT_FOUND);
     return user;
   }
 
